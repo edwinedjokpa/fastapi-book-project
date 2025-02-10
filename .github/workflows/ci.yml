@@ -37,4 +37,4 @@ jobs:
         if: failure() # This step runs if pytest fails (non-zero exit code)
         run: |
           echo "Tests failed. Please review the logs."
-          exit 1  # Force the job to fail with a custom message
+          exit 1
