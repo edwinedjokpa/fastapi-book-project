@@ -1,4 +1,4 @@
-name: Deploy Application to VPS
+name: Deploy Pipeline
 
 on:
   push:
