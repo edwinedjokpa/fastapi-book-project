@@ -32,41 +32,41 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
 
-          - name: Deploy to VPS
-          env:
-            VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
-            VPS_HOST: ${{ secrets.VPS_HOST }}
-          run: |
+      - name: Deploy to VPS
+        env:
+          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -e  # Exit immediately if any command fails
+          echo "Starting deployment on VPS..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$VPS_USERNAME@$VPS_HOST" << 'EOF'
             set -e  # Exit immediately if any command fails
-            echo "Starting deployment on VPS..."
-            ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$VPS_USERNAME@$VPS_HOST" << 'EOF'
-              set -e  # Exit immediately if any command fails
-              cd /home/deploy_user/fastapi-book-project || { echo 'Failed to navigate to project directory'; exit 1; }
-              git pull origin main || { echo 'Git pull failed'; exit 1; }
+            cd /home/deploy_user/fastapi-book-project || { echo 'Failed to navigate to project directory'; exit 1; }
+            git pull origin main || { echo 'Git pull failed'; exit 1; }
 
-              # Install or update dependencies
-              source venv/bin/activate || { echo 'Failed to activate virtual environment'; exit 1; }
-              pip install -r requirements.txt || { echo 'Failed to install dependencies'; exit 1; }
+            # Install or update dependencies
+            source venv/bin/activate || { echo 'Failed to activate virtual environment'; exit 1; }
+            pip install -r requirements.txt || { echo 'Failed to install dependencies'; exit 1; }
 
-              # Stop any running Uvicorn process, if it exists
-              if pgrep -f 'uvicorn' > /dev/null; then
-                pkill -f 'uvicorn' || { echo 'Failed to stop existing Uvicorn process'; exit 1; }
-              else
-                echo "No Uvicorn process running"
-              fi
+            # Stop any running Uvicorn process, if it exists
+            if pgrep -f 'uvicorn' > /dev/null; then
+              pkill -f 'uvicorn' || { echo 'Failed to stop existing Uvicorn process'; exit 1; }
+            else
+              echo "No Uvicorn process running"
+            fi
 
-              # Start a new Uvicorn instance with the latest code
-              nohup /home/deploy_user/fastapi-book-project/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4 > /home/deploy_user/fastapi-book-project/logs/uvicorn.log 2>&1 &
-              if [ $? -ne 0 ]; then
-                echo 'Failed to start Uvicorn server'
-                exit 1
-              fi
+            # Start a new Uvicorn instance with the latest code
+            nohup /home/deploy_user/fastapi-book-project/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4 > /home/deploy_user/fastapi-book-project/logs/uvicorn.log 2>&1 &
+            if [ $? -ne 0 ]; then
+              echo 'Failed to start Uvicorn server'
+              exit 1
+            fi
 
-              # Reload Nginx to apply any new configuration
-              sudo systemctl reload nginx || { echo 'Failed to reload Nginx'; exit 1; }
+            # Reload Nginx to apply any new configuration
+            sudo systemctl reload nginx || { echo 'Failed to reload Nginx'; exit 1; }
 
-              echo "Deployment completed successfully!"
-            EOF
+            echo "Deployment completed successfully!"
+          EOF
 
       - name: Notify deployment success
         run: echo "Deployment and server restart successful"
