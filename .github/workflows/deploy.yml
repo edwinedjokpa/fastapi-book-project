@@ -13,47 +13,41 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Set up SSH key
-        run: |
-          set -e
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Deploy to VPS
-        env:
-          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-        run: |
-          set -e
-          echo "Starting deployment on VPS..."
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$VPS_USERNAME@$VPS_HOST" <<'EOF'
+      - name: Deploy to VPS using Appleboy SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
             set -e
-            echo "Connected to VPS"
+            echo "🚀 Connected to VPS. Starting deployment..."
 
-            cd /home/deploy_user/fastapi-book-project || { echo 'Failed to navigate'; exit 1; }
-            git pull origin main || { echo 'Git pull failed'; exit 1; }
+            # Navigate to project directory
+            cd /home/deploy_user/fastapi-book-project || { echo '❌ Failed to navigate'; exit 1; }
+
+            # Pull latest changes
+            git pull origin main || { echo '❌ Git pull failed'; exit 1; }
 
             # Ensure logs directory exists
             mkdir -p /home/deploy_user/fastapi-book-project/logs
 
             # Activate virtual environment and install dependencies
             source venv/bin/activate
-            pip install -r requirements.txt || { echo 'Failed to install dependencies'; exit 1; }
+            pip install -r requirements.txt || { echo '❌ Failed to install dependencies'; exit 1; }
 
             # Restart FastAPI service properly
-            sudo systemctl restart fastapi || { echo 'Failed to restart FastAPI'; exit 1; }
+            sudo systemctl restart fastapi || { echo '❌ Failed to restart FastAPI'; exit 1; }
 
             # Reload Nginx safely
-            sudo systemctl reload nginx || { echo 'Failed to reload Nginx'; exit 1; }
+            sudo systemctl reload nginx || { echo '❌ Failed to reload Nginx'; exit 1; }
 
-            echo "Deployment completed successfully!"
-          EOF
+            echo "✅ Deployment completed successfully!"
 
-      - name: Notify Deployment Success
-        run: echo "Deployment completed successfully!"
+      - name: Notify Success
+        if: success()
+        run: echo "✅ Deployment succeeded!"
 
-      - name: Handle Failure
+      - name: Notify Failure
         if: failure()
-        run: echo "Deployment failed! Check logs for details."
+        run: echo "❌ Deployment failed! Check logs for details."
