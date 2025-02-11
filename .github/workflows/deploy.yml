@@ -55,6 +55,9 @@ jobs:
               echo "No Uvicorn process running"
             fi
 
+            # Ensure the logs directory exists
+            mkdir -p /home/deploy_user/fastapi-book-project/logs
+
             # Start a new Uvicorn instance with the latest code
             nohup /home/deploy_user/fastapi-book-project/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4 > /home/deploy_user/fastapi-book-project/logs/uvicorn.log 2>&1 &
             if [ $? -ne 0 ]; then
