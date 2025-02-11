@@ -44,14 +44,14 @@ async def get_books() -> OrderedDict[int, Book]:
     return db.get_books()
 
 
-@router.get("/{book_id}", response_model=Book, status_code=status.HTTP_200_OK)
-async def get_book(book_id: int) -> Book:
-    if book_id not in db.books:
-        return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content={"detail": "Book not found"},
-        )
-    return db.get_book(book_id)
+# @router.get("/{book_id}", response_model=Book, status_code=status.HTTP_200_OK)
+# async def get_book(book_id: int) -> Book:
+#     if book_id not in db.books:
+#         return JSONResponse(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             content={"detail": "Book not found"},
+#         )
+#     return db.get_book(book_id)
 
 
 @router.put("/{book_id}", response_model=Book, status_code=status.HTTP_200_OK)
