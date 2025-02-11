@@ -41,7 +41,7 @@ jobs:
           echo "Starting deployment on VPS..."
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no "$VPS_USERNAME@$VPS_HOST" <<EOF
             set -e  # Exit immediately if any command fails
-            cd /home/deploy_user/fastap-book-project || { echo 'Failed to navigate to project directory'; exit 1; }
+            cd /home/deploy_user/fastapi-book-project || { echo 'Failed to navigate to project directory'; exit 1; }
             git pull origin main || { echo 'Git pull failed'; exit 1; }
 
             # Install or update dependencies
