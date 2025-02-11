@@ -39,7 +39,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Auto-Close PR on Failure (Optional)
-        run: gh pr close ${{ github.event.pull_request.number }} --body "❌ Tests failed. Please fix them and reopen."
+        run: gh pr close ${{ github.event.pull_request.number }} --comment "❌ Tests failed. Please fix them and reopen."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
