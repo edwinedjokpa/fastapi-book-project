@@ -32,6 +32,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout Repository (Needed for gh CLI)
+        uses: actions/checkout@v2
+
       - name: Comment on PR if Tests Fail
         uses: thollander/actions-comment-pull-request@v2
         with:
@@ -39,7 +42,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Auto-Close PR on Failure (Optional)
-        run: gh pr close ${{ github.event.pull_request.number }} --comment "❌ Tests failed. Please fix them and reopen."
+        run: |
+          git fetch origin # Make sure we fetch the latest changes
+          gh pr close ${{ github.event.pull_request.number }} --comment "❌ Tests failed. Please fix them and reopen."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
