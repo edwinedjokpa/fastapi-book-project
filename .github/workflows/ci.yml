@@ -39,7 +39,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Auto-Close PR on Failure (Optional)
-        run: gh pr close ${{ github.event.pull_request.number }} --comment "❌ Tests failed. Please fix them and reopen."
+        run: gh pr close ${{ github.event.pull_request.number }} --body "❌ Tests failed. Please fix them and reopen."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -53,6 +53,6 @@ jobs:
         run: echo "✅ Tests passed! You can now merge the PR."
 
       - name: Auto-Merge PR (Optional)
-        run: gh pr merge ${{ github.event.pull_request.number }} --merge --auto --comment "✅ Tests passed. Merged automatically."
+        run: gh pr merge ${{ github.event.pull_request.number }} --merge --auto --body "✅ Tests passed. Merged automatically."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
