@@ -23,11 +23,12 @@ jobs:
             set -e
             echo "🚀 Connected to VPS. Starting deployment..."
 
+            # Ensure repository is up to date
+            echo "📥 Pulling latest changes from main branch..."
+            git pull origin main || { echo '❌ Git pull failed'; exit 1; }
+
             # Navigate to project directory
             cd /home/deploy_user/fastapi-book-project || { echo '❌ Failed to navigate'; exit 1; }
-
-            # Pull latest changes
-            git pull origin main || { echo '❌ Git pull failed'; exit 1; }
 
             # Ensure logs directory exists
             mkdir -p /home/deploy_user/fastapi-book-project/logs
