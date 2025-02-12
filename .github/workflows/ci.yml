@@ -10,60 +10,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v2
         with:
           python-version: "3.12"
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements.txt  # Install dependencies from requirements.txt
 
-      - name: Run Tests
-        run: pytest --maxfail=1 --disable-warnings
-
-  reject_on_failure:
-    needs: test
-    if: failure() # Only runs if the "test" job failed
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repository (Needed for gh CLI)
-        uses: actions/checkout@v2
-
-      - name: Comment on PR if Tests Fail
-        uses: thollander/actions-comment-pull-request@v2
-        with:
-          message: "❌ Tests failed! Please fix them before merging."
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Auto-Close PR on Failure (Optional)
+      - name: Run tests with pytest
+        id: test
         run: |
-          git fetch origin # Make sure we fetch the latest changes
-          gh pr close ${{ github.event.pull_request.number }} --comment "❌ Tests failed. Please fix them and reopen."
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          pytest --maxfail=1 --disable-warnings -q  # Run tests with pytest
 
-  success_on_pass:
-    needs: test
-    if: success() # Only runs if the "test" job passed
-    runs-on: ubuntu-latest
+      - name: Handle test success
+        if: success() # This step runs if pytest passes (exit code 0)
+        run: |
+          echo "All tests passed! 🎉"
 
-    steps:
-      - name: Checkout Repository Again for Merge (Fix for git repo error)
-        uses: actions/checkout@v2
-
-      - name: Set up Git
-        run: git config --global user.name "GitHub Actions" && git config --global user.email "actions@github.com"
-
-      - name: Success Notification (Optional)
-        run: echo "✅ Tests passed! You can now merge the PR."
-
-      - name: Auto-Merge PR (Optional)
-        run: gh pr merge ${{ github.event.pull_request.number }} --merge --auto --body "✅ Tests passed. Merged automatically."
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Handle test failure
+        if: failure() # This step runs if pytest fails (non-zero exit code)
+        run: |
+          echo "Tests failed. Please review the logs."
+          exit 1
