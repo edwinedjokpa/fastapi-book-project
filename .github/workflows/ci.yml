@@ -26,7 +26,7 @@ jobs:
       - name: Run tests with pytest
         id: test
         run: |
-          pytest --maxfail=1 --disable-warnings -q  # Run tests with pytest
+          pytest --maxfail=1 --disable-warnings -q
 
       - name: Handle test success
         if: success() # This step runs if pytest passes (exit code 0)
